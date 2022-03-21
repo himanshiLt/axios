@@ -1,0 +1,16 @@
+---
+framework: mocha
+preRun:
+     command:
+        - npm ci
+preMerge:
+  pattern:
+    - test/unit/**/*.js
+postMerge:
+  pattern: 
+    - test/unit/**/*.js
+postRun:
+     command:
+        - node --version
+configFile: mocharc.yml
+version: 1.0
