@@ -2,7 +2,7 @@
 framework: mocha
 preRun:
      command:
-        - npm ci
+        - npm install
 preMerge:
   pattern:
     - test/unit/**/*.js
