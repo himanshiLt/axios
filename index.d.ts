@@ -6,11 +6,11 @@ export type AxiosResponseHeaders = Record<string, string> & {
 };
 
 export interface AxiosRequestTransformer {
-  (data: any, headers?: AxiosRequestHeaders): any;
+  (data: any, headers: AxiosRequestHeaders): any;
 }
 
 export interface AxiosResponseTransformer {
-  (data: any, headers?: AxiosResponseHeaders): any;
+  (data: any, headers?: AxiosResponseHeaders, status?: number): any;
 }
 
 export interface AxiosAdapter {
@@ -72,6 +72,13 @@ export interface TransitionalOptions {
   clarifyTimeoutError?: boolean;
 }
 
+export interface GenericAbortSignal {
+  aborted: boolean;
+  onabort: ((...args: any) => any) | null;
+  addEventListener: (...args: any) => any;
+  removeEventListener: (...args: any) => any;
+}
+
 export interface AxiosRequestConfig<D = any> {
   url?: string;
   method?: Method | string;
@@ -105,8 +112,11 @@ export interface AxiosRequestConfig<D = any> {
   cancelToken?: CancelToken;
   decompress?: boolean;
   transitional?: TransitionalOptions;
-  signal?: AbortSignal;
+  signal?: GenericAbortSignal;
   insecureHTTPParser?: boolean;
+  env?: {
+    FormData?: new (...args: any[]) => object;
+  };
 }
 
 export interface HeadersDefaults {
@@ -127,6 +137,10 @@ export interface AxiosDefaults<D = any> extends Omit<AxiosRequestConfig<D>, 'hea
   headers: HeadersDefaults;
 }
 
+export interface CreateAxiosDefaults<D = any> extends Omit<AxiosRequestConfig<D>, 'headers'> {
+  headers?: AxiosRequestHeaders | Partial<HeadersDefaults>;
+}
+
 export interface AxiosResponse<T = any, D = any>  {
   data: T;
   status: number;
@@ -145,7 +159,7 @@ export class AxiosError<T = unknown, D = any> extends Error {
     response?: AxiosResponse<T, D>
   );
 
-  config: AxiosRequestConfig<D>;
+  config?: AxiosRequestConfig<D>;
   code?: string;
   request?: any;
   response?: AxiosResponse<T, D>;
@@ -167,8 +181,7 @@ export class AxiosError<T = unknown, D = any> extends Error {
 export class CanceledError<T> extends AxiosError<T> {
 }
 
-export interface AxiosPromise<T = any> extends Promise<AxiosResponse<T>> {
-}
+export type AxiosPromise<T = any> = Promise<AxiosResponse<T>>;
 
 export interface CancelStatic {
   new (message?: string): Cancel;
@@ -224,23 +237,38 @@ export class Axios {
   post<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
   put<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
   patch<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  postForm<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  putForm<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  patchForm<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
 }
 
 export interface AxiosInstance extends Axios {
   (config: AxiosRequestConfig): AxiosPromise;
   (url: string, config?: AxiosRequestConfig): AxiosPromise;
+
+  defaults: Omit<AxiosDefaults, 'headers'> & {
+    headers: HeadersDefaults & {
+      [key: string]: string | number | boolean | undefined
+    }
+  };
+}
+
+export interface GenericFormData {
+  append(name: string, value: any, options?: any): any;
 }
 
 export interface AxiosStatic extends AxiosInstance {
-  create(config?: AxiosRequestConfig): AxiosInstance;
+  create(config?: CreateAxiosDefaults): AxiosInstance;
   Cancel: CancelStatic;
   CancelToken: CancelTokenStatic;
   Axios: typeof Axios;
+  AxiosError: typeof AxiosError;
   readonly VERSION: string;
   isCancel(value: any): boolean;
   all<T>(values: Array<T | Promise<T>>): Promise<T[]>;
   spread<T, R>(callback: (...args: T[]) => R): (array: T[]) => R;
   isAxiosError(payload: any): payload is AxiosError;
+  toFormData(sourceObj: object, targetFormData?: GenericFormData): GenericFormData;
 }
 
 declare const axios: AxiosStatic;
