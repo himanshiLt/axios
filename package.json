@@ -11,7 +11,8 @@
     "build": "NODE_ENV=production grunt build",
     "examples": "node ./examples/server.js",
     "coveralls": "cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "fix": "eslint --fix lib/**/*.js"
+    "fix": "eslint --fix lib/**/*.js",
+    "test:unit": "test/unit/**/*.js"
   },
   "repository": {
     "type": "git",
