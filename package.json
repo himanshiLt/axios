@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "grunt test && dtslint",
+    "test": "grunt test",
     "start": "node ./sandbox/server.js",
     "preversion": "grunt version && npm test",
     "build": "NODE_ENV=production grunt build",
